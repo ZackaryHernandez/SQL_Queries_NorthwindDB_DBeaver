@@ -1,0 +1,1 @@
+# SQL_Queries_NorthwindDB_DBeaver
