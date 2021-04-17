@@ -1,13 +1,34 @@
-#31 
+/*
+#31 Alternative
+SELECT CustomerID
+FROM Customers c 
+WHERE 
+     CustomerID NOT IN (SELECT CustomerID FROM Orders WHERE EmployeeID = 4);
+
+#31 Customers with no orders for EmployeeID 4
+SELECT c.CustomerID,
+  	   o.CustomerID,
+  	   o.EmployeeID 
+FROM Customers c 
+	LEFT JOIN Orders o 
+		ON o.CustomerID = c.CustomerID
+		AND EmployeeID = 4
+WHERE 
+	o.CustomerID IS null;
 
 
-/*#30
+
+
+#30
 SELECT c.CustomerID AS Customers_CustomerID,
        o.CustomerID AS Orders_OrdersID
 FROM Customers c
 	LEFT JOIN Orders o 
 		ON c.CustomerID = o.CustomerID
-WHERE c.CustomerID NOT IN(SELECT CustomerID FROM Orders)*/
+WHERE c.CustomerID NOT IN(SELECT CustomerID FROM Orders)
+*/
+
+
 
 #29 Employee Order Detail Report
 #Goal:  joining 3 tables together
