@@ -1,3 +1,49 @@
+
+
+#34 High Value Customers with Discount
+#Change the 33 query to use the discount when calculating high-value customers. 
+#Order by the total amount which includes the discount.
+SELECT c.CustomerID,
+       c.CompanyName, 
+       SUM(Quantity * UnitPrice) AS TotalWithoutDiscount,
+       SUM(Quantity * UnitPrice * (1 - Discount)) AS TotalWithDiscount
+FROM Customers c
+    JOIN Orders o
+		ON o.CustomerID = c.CustomerID 
+	JOIN OrderDetails od
+		ON o.OrderID = od.OrderID
+WHERE
+OrderDate >= '2016-01-01' and OrderDate < '2017-01-01'
+GROUP BY 
+	c.CustomerID,
+	c.CompanyName
+HAVING TotalWithDiscount > 10000
+ORDER BY TotalWithDiscount DESC;
+
+
+#33 High Value customers total orders
+#The manager has changed his mind. Instead of requiring that customers have at least one individual orders totaling $10,000 or more,
+#he wants to define high-value customers as those who have orders totaling $15,000 or more in 2016. 
+#How would you change the answer from 32 to the problem above?
+#Answer: The key is to only group by CustomerID and Company Name. A given company could have different OrderID's.
+#Therefore, by emitting the OrderID from grouping we allow for all orders to be aggegated per CompanyName/CustomerID. 
+SELECT c.CustomerID,
+       c.CompanyName, 
+       SUM(Quantity * UnitPrice) AS TotalOrderAmount
+FROM Customers c
+    JOIN Orders o
+		ON o.CustomerID = c.CustomerID 
+	JOIN OrderDetails od
+		ON o.OrderID = od.OrderID
+WHERE
+OrderDate >= '2016-01-01' and OrderDate < '2017-01-01'
+GROUP BY 
+	c.CustomerID,
+	c.CompanyName
+HAVING Sum(Quantity * UnitPrice) >= 15000 ORDER BY TotalOrderAmount DESC;
+
+
+
 #32 (Beginning of Advanced Problems)
 #We want to send all of our high-value customers a special gift. We are defining 
 #high value customers as those who've made at least 1 order with a total value
