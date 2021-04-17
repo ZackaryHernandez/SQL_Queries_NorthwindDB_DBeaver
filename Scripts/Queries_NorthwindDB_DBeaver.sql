@@ -1,4 +1,55 @@
-/*
+#32 (Beginning of Advanced Problems)
+#We want to send all of our high-value customers a special gift. We are defining 
+#high value customers as those who've made at least 1 order with a total value
+#(not including the discount) equal to $10,000 or more. We only want to consider
+#orders made in 2016.
+
+# Correct:
+SELECT c.CustomerID,
+       c.CompanyName, 
+       o.OrderID, 
+       SUM(Quantity * UnitPrice) AS TotalOrderAmount
+FROM Customers c
+    JOIN Orders o
+		ON o.CustomerID = c.CustomerID 
+	JOIN OrderDetails od
+		ON o.OrderID = od.OrderID
+WHERE
+OrderDate >= '2016-01-01' and OrderDate < '2017-01-01'
+GROUP BY 
+	c.CustomerID,
+	c.CompanyName,
+	o.Orderid
+HAVING Sum(Quantity * UnitPrice) > 10000 ORDER BY TotalOrderAmount DESC;
+
+
+
+#Incorrect
+SELECT
+	o.CustomerID,
+	c.CompanyName,
+	od.OrderID,
+	SUM(UnitPrice * Quantity) AS TotalPriceBeforeDiscount
+FROM OrderDetails od 
+	LEFT JOIN Orders o 
+		ON od.OrderID = o.OrderID 
+	LEFT JOIN Customers c 
+		ON o.CustomerID  = c.CustomerID 
+WHERE 
+	o.OrderDate BETWEEN '2016-01-01' AND '2017-01-01';
+GROUP BY
+	o.CustomerID,
+	c.CompanyName,
+	od.OrderID
+HAVING Sum(UnitPrice* Quantity) > 10000 Order by TotalPriceBeforeDiscount DESC;
+    
+    
+
+	
+
+
+
+
 #31 Alternative
 SELECT CustomerID
 FROM Customers c 
@@ -26,7 +77,7 @@ FROM Customers c
 	LEFT JOIN Orders o 
 		ON c.CustomerID = o.CustomerID
 WHERE c.CustomerID NOT IN(SELECT CustomerID FROM Orders)
-*/
+
 
 
 
@@ -53,14 +104,14 @@ FROM Employees
 
 #28
 #Moral: Do not hard code dates in where conditions
-/*SELECT ShipCountry,
+SELECT ShipCountry,
 	   AVG(Freight) AS AverageFreight
 FROM Orders 
 WHERE 
 	 OrderDate >= DATE_ADD((Select max(OrderDate) from Orders) , INTERVAL -1 year)
 GROUP BY ShipCountry
 ORDER BY AverageFreight DESC 
-LIMIT 3;*/
+LIMIT 3;
 
 #27 Given from file - this query provides a different average weight
 #because BETWEEN Operator does non inclusive for 12-31
@@ -72,7 +123,6 @@ LIMIT 3;*/
 # it only includes 2015-12-31 00:00:00. it doe include times after 00:00:00 on the 31st
 # if this was a date field instead of a datetime field, between would have workded fine. 
 
-/*
 SELECT ShipCountry,
 	   AVG(Freight) AS AverageFreight
 FROM Orders
@@ -81,7 +131,6 @@ WHERE
 GROUP BY ShipCountry
 ORDER BY AverageFreight DESC
 LIMIT 5;
-*/
 
 #27a using comparison operators: gives us 408 results
 /*
@@ -225,4 +274,3 @@ FROM Products
 	JOIN Suppliers
 	ON Suppliers.SupplierID = Products.SupplierID
 *
-*/
