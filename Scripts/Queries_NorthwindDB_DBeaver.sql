@@ -1,4 +1,139 @@
+#40 Orders—accidental double-entry details, derived table
+#Here's another way of getting the same results as in the previous problem,
+# using a derived table instead of a CTE. 
+#However, there's a bug in this SQL. It returns 20 rows instead of 16. Correct the SQL.
+#Fixed SQL: (add distinct to the Select statement nested in the JOIN statement
 
+Select
+     OrderDetails.OrderID
+    ,ProductID
+    ,UnitPrice
+    ,Quantity
+    ,Discount
+ From OrderDetails
+ 	 Join (
+		Select DISTINCT 
+			OrderID
+		From OrderDetails
+		Where 
+			Quantity >= 60
+		Group By 
+			OrderID, 
+			Quantity
+		Having Count(*) > 1
+		) 
+		PotentialProblemOrders ON PotentialProblemOrders.OrderID = OrderDetails.OrderID
+Order by 
+	OrderID, 
+	ProductID;
+
+
+
+
+#39 Orders = accidental double entry details
+#Based on the previous question, 
+#we now want to show details of the order, 
+#for orders that match the above criteria.
+
+#Slyvia's Answer using CTEs:
+WITH PotentialDuplicates AS (
+    Select
+OrderID
+From OrderDetails
+Where Quantity >= 60
+Group By OrderID, Quantity 
+Having Count(*) > 1
+)
+Select
+    OrderID
+    ,ProductID
+    ,UnitPrice
+    ,Quantity
+    ,Discount
+From OrderDetails
+Where
+    OrderID in (Select OrderID from PotentialDuplicates)
+Order by
+    OrderID
+    ,Quantity;
+
+
+#My answer using SELECT statement nested in the Where Clause
+SELECT 
+	OrderID,
+	ProductID,
+	UnitPrice,
+	Quantity,
+	Discount
+FROM OrderDetails od 
+WHERE OrderID IN 
+	(SELECT OrderID
+	FROM OrderDetails
+	WHERE Quantity >= 60
+	GROUP BY OrderID,
+			 Quantity
+	Having Count(*) > 1)
+ORDER BY 
+	OrderID,
+	Quantity;
+
+
+#38 Orders - accidental double entry
+/*Janet Leverling, one of the salespeople, has come to you with a request. She thinks that she accidentally
+ * entered a line item twice on an order, each time with a different ProductID, but the same quantity.
+ * She remembers that the quantity was 60 or more. Show all the OrderIDs with line items that match this, in order of OrderID.
+ * */
+
+SELECT 
+	OrderID,
+	COUNT(*)
+FROM OrderDetails od 
+WHERE Quantity >= 60
+GROUP BY 
+	OrderID,
+	Quantity
+HAVING COUNT(*) > 1
+ORDER BY 
+	OrderID
+
+
+#37 Orders - Random Assortment
+#The Northwind mobile app developers would now like to just get a random assortment of orders for beta testing on their app.
+#Show a random set of 10 orders.
+SELECT OrderID
+FROM Orders 
+ORDER BY
+	RAND()
+LIMIT 5;
+
+
+#36
+#The Northwind mobile app developers are testing an app that customers will use to show orders. 
+#In order to make sure that even the largest orders will show up correctly on the app,
+#they'd like some samples of orders that have lots of individual line items.
+#Show the 10 orders with the most line items, in order of total line items.
+SELECT 
+	OrderID,
+	Count(*) AS TotalOrderDetails
+FROM OrderDetails od
+GROUP BY
+	OrderID 
+ORDER BY 
+	COUNT(*) DESC
+LIMIT 10;
+
+#35 Month End Orders
+#At the end of the month. salespeople are likely to try much harder to get orders, to meet their month end quotas. 
+#Show all orders made on the last day of the month. Order by EmployeeID and OrderID.
+SELECT 
+	EmployeeID,
+	OrderID,
+	DATE(OrderDate)
+FROM Orders
+WHERE OrderDate = LAST_DAY(OrderDate)
+ORDER BY OrderDate ASC 
+
+# 
 
 #34 High Value Customers with Discount
 #Change the 33 query to use the discount when calculating high-value customers. 
@@ -40,7 +175,8 @@ OrderDate >= '2016-01-01' and OrderDate < '2017-01-01'
 GROUP BY 
 	c.CustomerID,
 	c.CompanyName
-HAVING Sum(Quantity * UnitPrice) >= 15000 ORDER BY TotalOrderAmount DESC;
+HAVING Sum(Quantity * UnitPrice) >= 15000 
+ORDER BY TotalOrderAmount DESC;
 
 
 
@@ -66,7 +202,8 @@ GROUP BY
 	c.CustomerID,
 	c.CompanyName,
 	o.Orderid
-HAVING Sum(Quantity * UnitPrice) > 10000 ORDER BY TotalOrderAmount DESC;
+HAVING Sum(Quantity * UnitPrice) > 10000 
+ORDER BY TotalOrderAmount DESC;
 
 
 
