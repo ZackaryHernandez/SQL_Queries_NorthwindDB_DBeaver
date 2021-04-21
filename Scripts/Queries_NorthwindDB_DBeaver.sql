@@ -1,7 +1,76 @@
+#44 Late Orders vs. Total Orders -- missing employee
+#There's an employtee missing in the answer from the problem above. Fix the SQL to show all
+#employees who have taken orders. 
+#Buchanan is missing from the list because his late orders = NULL
+#Buchanan was missing because we have been using inner joins. Instead we had to use
+#left join for each join statement. This ensures all employees are accounted for even
+# if they do not have any late orders (or no orders at all).
+
+WITH LateOrders AS (
+    Select
+        EmployeeID
+        ,Count(*) as TotalOrders
+    From Orders
+    Where RequiredDate <= ShippedDate 
+    Group By
+		  EmployeeID 
+	)
+,AllOrders as ( 
+	Select
+        EmployeeID
+        ,Count(*) as TotalOrders
+    From Orders
+    Group By
+        EmployeeID
+    )
+SELECT
+	Employees.EmployeeID
+	,LastName
+	,AllOrders.TotalOrders as AllOrders 
+	,LateOrders.TotalOrders as LateOrders
+From Employees
+    LEFT Join AllOrders
+		on AllOrders.EmployeeID = Employees.EmployeeID 
+	LEFT Join LateOrders
+		on LateOrders.EmployeeID = Employees.EmployeeID 
+Order by 
+	Employees.EmployeeID;
 #43 Late Orders vs. Total Orders
 #Andrew, the VP of Sales, has been doing some more thinking about the problem of late orders. He realizes
 #that just looking at the number of orders arriving late for each salesperson is not a good idea. It needs
 #to be compared againts the total number of orders per sales person. 
+
+#Sylvia's solution (my solution is below) 
+#Sylvia's Solution uses CTEs
+With LateOrders as (
+    Select
+        EmployeeID
+        ,Count(*) as TotalOrders
+    From Orders
+    Where RequiredDate <= ShippedDate 
+    Group By
+		  EmployeeID 
+	)
+,AllOrders as ( 
+	Select
+        EmployeeID
+        ,Count(*) as TotalOrders
+    From Orders
+    Group By
+        EmployeeID
+    )
+SELECT
+	Employees.EmployeeID
+	,LastName
+	,AllOrders.TotalOrders as AllOrders 
+	,LateOrders.TotalOrders as LateOrders
+From Employees
+    Join AllOrders
+		on AllOrders.EmployeeID = Employees.EmployeeID 
+	Join LateOrders
+		on LateOrders.EmployeeID = Employees.EmployeeID 
+Order by 
+	Employees.EmployeeID;
 
 #My Solution: Create a temporary table contains TotalOrders with EmployeeID as the Primary Key
 # Then, Join this temporary table 
