@@ -1,9 +1,81 @@
+#43 Late Orders vs. Total Orders
+#Andrew, the VP of Sales, has been doing some more thinking about the problem of late orders. He realizes
+#that just looking at the number of orders arriving late for each salesperson is not a good idea. It needs
+#to be compared againts the total number of orders per sales person. 
+
+#My Solution: Create a temporary table contains TotalOrders with EmployeeID as the Primary Key
+# Then, Join this temporary table 
+SELECT 
+	e.EmployeeID,
+	e.LastName,
+	t.TotalOrders,
+	COUNT(*) AS TotalLateOrders
+FROM Orders o
+JOIN Employees e 
+	ON o.EmployeeID = e.EmployeeID 
+JOIN tempAllOrders t
+	ON e.EmployeeID = t.EmployeeID
+WHERE o.RequiredDate <= o.ShippedDate
+GROUP BY 
+	e.EmployeeID,
+	e.LastName,
+	t.TotalOrders
+ORDER BY 
+	EmployeeID 
+
+#Testing the temporary table
+SELECT *
+FROM tempAllOrders
+
+#Creating a temp table that will soon be joined to
+CREATE TEMPORARY TABLE tempAllOrders 
+SELECT 
+	EmployeeID,
+	COUNT(*) AS TotalOrders
+FROM Orders o 
+GROUP BY
+	EmployeeID 
+ORDER BY 
+	EmployeeID 
+
+
+
+#42 Late Orders -- which Employees?
+#Some Salespeople have more orders arriving late than others. Maybe they're not following up
+#on the order process, and need more training. Which Salespeople have the most orders arriving late. 
+SELECT 
+	e.EmployeeID,
+	e.LastName, 
+	COUNT(o.OrderID) AS TotalLateOrders
+FROM Orders o
+JOIN Employees e 
+	ON o.EmployeeID = e.EmployeeID 
+WHERE o.RequiredDate <= o.ShippedDate
+GROUP BY 
+	e.EmployeeID,
+	e.LastName 
+ORDER BY 
+	TotalLateOrders DESC 
+	
+#41 Late Orders
+#Some customers are complaining about their orders arriving late. 
+#Which orders are late? Sort the results by OrderID.
+SELECT OrderID,
+	DATE(OrderDate) AS OrderDate,
+	DATE(RequiredDate) AS RequiredDate,
+	DATE(ShippedDate) AS ShippedDate
+FROM Orders
+WHERE RequiredDate <= ShippedDate 
+ORDER BY
+	OrderID;
+
+
 #40 Orders—accidental double-entry details, derived table
 #Here's another way of getting the same results as in the previous problem,
 # using a derived table instead of a CTE. 
 #However, there's a bug in this SQL. It returns 20 rows instead of 16. Correct the SQL.
-#Fixed SQL: (add distinct to the Select statement nested in the JOIN statement
 
+#Fixed SQL: (add distinct to the Select statement nested in the JOIN statement
 Select
      OrderDetails.OrderID
     ,ProductID
@@ -37,7 +109,7 @@ Order by
 
 #Slyvia's Answer using CTEs:
 WITH PotentialDuplicates AS (
-    Select
+Select
 OrderID
 From OrderDetails
 Where Quantity >= 60
@@ -316,7 +388,6 @@ ORDER BY AverageFreight DESC
 LIMIT 5;
 
 #27a using comparison operators: gives us 408 results
-/*
 SELECT ShipCountry,
 	OrderID,
 	OrderDate
@@ -325,10 +396,10 @@ WHERE OrderDate >= '2015-01-01'
 	AND 
 		OrderDate < '2016-01-01'
 ORDER BY OrderDate DESC 
-*/
+
 
 #27b Gives us 406 results
-/*SELECT ShipCountry,
+SELECT ShipCountry,
 	OrderID,
 	OrderDate
 FROM Orders
@@ -346,37 +417,30 @@ WHERE
 	OrderDate < '2016-01-01'
 GROUP BY ShipCountry
 ORDER BY AverageFreight DESC
-LIMIT 5;*/
-
+LIMIT 5;
          
 
 
 
-/*
 CASE (
 		 	WHEN (YEAR(OrderDate) = 2015
 		 		THEN 3000
 		 		ELSE YEAR(OrderDate)
 		 	END) DESC
-*/
 
 
 
 	   
 
 
-/*#25
- * 
- * SELECT ShipCountry,
+#25
+SELECT ShipCountry,
        AVG(Freight) AS AverageFreight
 FROM Orders
 GROUP BY ShipCountry
 ORDER BY AverageFreight DESC 
-LIMIT 3;*/
-
-
-/*
- * #24
+LIMIT 3;
+ #24
  * SELECT CustomerID,
 	   CompanyName,
 	   Region,
@@ -389,9 +453,9 @@ Order By (CASE
 	   		WHEN Region is NULL THEN 1
 	   		ELSE 0 
 	   	END) ASC, 
-	   	Region ASC*/
+	   	Region ASC
 
-/* #23
+#23
 SELECT ProductID, 
 	   ProductName,
 	   UnitsInStock,
@@ -401,7 +465,7 @@ SELECT ProductID,
 FROM Products
 WHERE ((UnitsInStock + UnitsOnOrder) <= ReorderLevel) AND Discontinued = 0*/ 
 
-/* #22
+#22
 SELECT ProductID, 
 	   ProductName,
 	   UnitsInStock,
@@ -411,30 +475,29 @@ WHERE UnitsInStock < ReorderLevel*/
 
 
 
-/* #21
+#21
 
 SELECT Country, City,
        COUNT(CustomerID) AS TotalCustomers
 FROM Customers
 GROUP BY Country, City 
-*/
 
 
 
 
-/*#20
+
+#20
 SELECT CategoryName, COUNT(Products.CategoryID) AS TotalProducts
 FROM Products
 	JOIN Categories
 	ON Products.CategoryID = Categories.CategoryID
 GROUP BY CategoryName
-ORDER BY TotalProducts DESC*/
+ORDER BY TotalProducts DESC
 
 
 
-/* #19
- * 
- * SELECT OrderID, 
+#19 
+SELECT OrderID, 
 	   DATE(OrderDate) AS OrderDate,
 	   CompanyName AS Shipper
 FROM Orders
@@ -444,16 +507,12 @@ WHERE
 	  OrderID < 10270
 ORDER BY 
 	  OrderDate ASC 
-*
-*
-*/
     
 	
-/* #18
+#18
 SELECT ProductID, 
 	   ProductName, 
 	   CompanyName 
 FROM Products
 	JOIN Suppliers
 	ON Suppliers.SupplierID = Products.SupplierID
-*
