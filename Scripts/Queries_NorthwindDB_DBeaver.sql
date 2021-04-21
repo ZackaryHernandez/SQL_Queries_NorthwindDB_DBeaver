@@ -3,6 +3,8 @@
 #57 beginning, intermediate, and advanced challenges for you to solve using a “learn-by-doing” approach
 #MySQL version
 #By Sylvia Moestl Vasilik
+
+#Zack Hernandez
 #########################
 
 #45 
