@@ -1,3 +1,12 @@
+#########################
+# SQL Practice Problems
+#57 beginning, intermediate, and advanced challenges for you to solve using a “learn-by-doing” approach
+#MySQL version
+#By Sylvia Moestl Vasilik
+#########################
+
+#45 
+
 #44 Late Orders vs. Total Orders -- missing employee
 #There's an employtee missing in the answer from the problem above. Fix the SQL to show all
 #employees who have taken orders. 
@@ -7,33 +16,33 @@
 # if they do not have any late orders (or no orders at all).
 
 WITH LateOrders AS (
-    Select
+    SELECT
         EmployeeID
-        ,Count(*) as TotalOrders
-    From Orders
-    Where RequiredDate <= ShippedDate 
-    Group By
+        ,Count(*) AS TotalOrders
+    FROM Orders
+    WHERE RequiredDate <= ShippedDate 
+    GROUP BY 
 		  EmployeeID 
-	)
-,AllOrders as ( 
-	Select
-        EmployeeID
-        ,Count(*) as TotalOrders
-    From Orders
-    Group By
+	),
+AllOrders AS ( 
+	SELECT
+        EmployeeID,
+        Count(*) AS TotalOrders
+    FROM Orders
+    GROUP BY
         EmployeeID
     )
 SELECT
-	Employees.EmployeeID
-	,LastName
-	,AllOrders.TotalOrders as AllOrders 
-	,LateOrders.TotalOrders as LateOrders
-From Employees
-    LEFT Join AllOrders
-		on AllOrders.EmployeeID = Employees.EmployeeID 
-	LEFT Join LateOrders
-		on LateOrders.EmployeeID = Employees.EmployeeID 
-Order by 
+	Employees.EmployeeID,
+	LastName,
+	AllOrders.TotalOrders AS AllOrders, 
+	LateOrders.TotalOrders AS LateOrders
+FROM Employees
+    LEFT JOIN AllOrders
+		ON AllOrders.EmployeeID = Employees.EmployeeID 
+	LEFT JOIN LateOrders
+		ON LateOrders.EmployeeID = Employees.EmployeeID 
+ORDER BY 
 	Employees.EmployeeID;
 #43 Late Orders vs. Total Orders
 #Andrew, the VP of Sales, has been doing some more thinking about the problem of late orders. He realizes
@@ -394,7 +403,8 @@ WHERE
 
 
 
-#30
+#30 
+#There are some customers who have never actually placed an order. Show these customers.
 SELECT c.CustomerID AS Customers_CustomerID,
        o.CustomerID AS Orders_OrdersID
 FROM Customers c
@@ -406,10 +416,11 @@ WHERE c.CustomerID NOT IN(SELECT CustomerID FROM Orders)
 
 
 #29 Employee Order Detail Report
+#We're doing inventory, and need to show Employee and Order Detail information like the below, for all orders. Sort by OrderID and Product ID.
 #Goal:  joining 3 tables together
 # Employee ID (Employee Table) --> Employee ID (Orders Table) Order ID --> Order ID (Order Details Table) 
 
-/*SELECT Employees.EmployeeID,
+SELECT Employees.EmployeeID,
        Employees.LastName,
        Orders.OrderID,
        Products.ProductID,
@@ -421,12 +432,14 @@ FROM Employees
 		ON Orders.OrderID = OrderDetails.OrderID 
 	JOIN Products
 		ON OrderDetails.ProductID  = Products.ProductID
-	*/
+	
 
        
 
 
 #28
+#We're continuing to work on high freight charges. We now want to get the three ship countries with the highest average freight charges.
+#But instead of filtering for a particular year, we want to use the last 12 months of order data, using as the end date the last OrderDate in Orders.
 #Moral: Do not hard code dates in where conditions
 SELECT ShipCountry,
 	   AVG(Freight) AS AverageFreight
@@ -437,16 +450,22 @@ GROUP BY ShipCountry
 ORDER BY AverageFreight DESC 
 LIMIT 3;
 
-#27 Given from file - this query provides a different average weight
-#because BETWEEN Operator does non inclusive for 12-31
+#27
+#See query below (***) this is provided by Sylvia and is incorrect
+#Notice when you run this, it gives Sweden as the ShipCountry with the third highest freight charges. However, this is wrong—it should be France.
+#Find the OrderID that is causing the SQL statement above to be incorrect.
+
+#My notes: 
+# BETWEEN Operator is non inclusive for 12-31
 # subquery 27a shows 408 
-# subquery 27b shows 406 rows. this query matches the "incorrect" query below
-# 2 rows are from 12-31 and one of them is france
-#the OrderID for this missing France row is 10,806
+# subquery 27b shows 406 rows. this query matches the "incorrect" query below provided by Sylvia (***)
+#2 rows are from 12-31 and one of them is france the OrderID for this missing France row is 10,806
+
 # Moral of the story: BETWEEN is non inclusive for the upper limit
 # it only includes 2015-12-31 00:00:00. it doe include times after 00:00:00 on the 31st
 # if this was a date field instead of a datetime field, between would have workded fine. 
 
+# (***)( Given from file - this query provides a different average weight
 SELECT ShipCountry,
 	   AVG(Freight) AS AverageFreight
 FROM Orders
@@ -476,7 +495,8 @@ WHERE
 	OrderDate BETWEEN '2015-01-01' AND '2015-12-31'
 ORDER BY OrderDate DESC
 
- #26
+#26
+#We're continuing on the question above on high freight charges. Now, instead of using all the orders we have, we only want to see orders from the year 2015.
 SELECT ShipCountry,
 	   AVG(Freight) AS AverageFreight
 FROM Orders
@@ -502,15 +522,23 @@ CASE (
 	   
 
 
-#25
+#25 
+# Some of the countries we ship to have very high freight charges.
+#We'd like to investigate some more shipping options for our customers, to be able to offer them lower freight charges.
+# Return the three ship countries with the highest average freight overall, in descending order by average freight.
 SELECT ShipCountry,
        AVG(Freight) AS AverageFreight
 FROM Orders
 GROUP BY ShipCountry
 ORDER BY AverageFreight DESC 
 LIMIT 3;
- #24
- * SELECT CustomerID,
+ 
+
+#24
+#A salesperson for Northwind is going on a business trip to visit customers. He would like to see a list of all customers, sorted by region, alphabetically.
+#However, he wants the customers with no region (null in the Region field) to be at the end, instead of at the top, where you’d normally find the null values.
+#Within the same region, companies should be sorted by CustomerID.
+SELECT CustomerID,
 	   CompanyName,
 	   Region,
 	   (CASE
@@ -524,7 +552,11 @@ Order By (CASE
 	   	END) ASC, 
 	   	Region ASC
 
-#23
+#23 
+#Now we need to incorporate these fields—UnitsInStock, UnitsOnOrder, ReorderLevel, Discontinued—into our calculation.
+#We’ll define “products that need reordering” with the following:
+#UnitsInStock plus UnitsOnOrder are less than or equal to ReorderLevel
+#The Discontinued flag is false.
 SELECT ProductID, 
 	   ProductName,
 	   UnitsInStock,
@@ -532,9 +564,14 @@ SELECT ProductID,
 	   ReorderLevel,
 	   Discontinued 
 FROM Products
-WHERE ((UnitsInStock + UnitsOnOrder) <= ReorderLevel) AND Discontinued = 0*/ 
+WHERE ((UnitsInStock + UnitsOnOrder) <= ReorderLevel) AND Discontinued = 0
 
 #22
+#What products do we have in our inventory that should be reordered? 
+#For now, just use the fields UnitsInStock and ReorderLevel, where UnitsInStock is less than or equal to the ReorderLevel,
+#Ignore the fields UnitsOnOrder and Discontinued.
+#Sort the results by ProductID.
+
 SELECT ProductID, 
 	   ProductName,
 	   UnitsInStock,
@@ -545,6 +582,8 @@ WHERE UnitsInStock < ReorderLevel*/
 
 
 #21
+#In the Customers table, show the total number of customers per Country and City.
+
 
 SELECT Country, City,
        COUNT(CustomerID) AS TotalCustomers
@@ -556,6 +595,7 @@ GROUP BY Country, City
 
 
 #20
+#For this problem, we’d like to see the total number of products in each category. Sort the results by the total number of products, in descending order.
 SELECT CategoryName, COUNT(Products.CategoryID) AS TotalProducts
 FROM Products
 	JOIN Categories
@@ -566,6 +606,9 @@ ORDER BY TotalProducts DESC
 
 
 #19 
+#We’d like to show a list of the Orders that were made, including the Shipper that was used. 
+#Show the OrderID, OrderDate (date only), and CompanyName of the Shipper, and sort by OrderID.
+#In order to not show all the orders (there’s more than 800), show only those rows with an OrderID of less than 10270.
 SELECT OrderID, 
 	   DATE(OrderDate) AS OrderDate,
 	   CompanyName AS Shipper
@@ -579,9 +622,17 @@ ORDER BY
     
 	
 #18
+#We’d like to show, for each product, the associated Supplier. Show the ProductID, ProductName, and the CompanyName of the Supplier.
+#Sort the result by ProductID.
+#This question will introduce what may be a new concept—the Join clause in SQL.
+#The Join clause is used to join two or more relational database tables together in a logical way.
+#Here’s a data model of the relationship between Products and Suppliers.
 SELECT ProductID, 
 	   ProductName, 
 	   CompanyName 
 FROM Products
 	JOIN Suppliers
 	ON Suppliers.SupplierID = Products.SupplierID
+	
+	
+#Questions 1 through 17 were Beginner level select statememnts. All questions above are increasingly more advanced.  
